@@ -5,6 +5,7 @@ from openpyxl import load_workbook
 from wildberries.pydantic import CardPydantic
 from wildberries.utils import make_request
 import asyncio
+from wildberries.models import Product
 
 
 class CardView(APIView):
@@ -28,6 +29,7 @@ class CardView(APIView):
         card = None
         try:
             card = CardPydantic.parse_raw(json.dumps(page['data']['products'][0]))
+            Product.objects.create(**card.dict())
         except IndexError as e:
             print(f'id {value} отсутствует на сайте wildberries.ru')
         if card:
