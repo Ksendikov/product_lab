@@ -2,24 +2,15 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from openpyxl import load_workbook
-import requests
 from wildberries.pydantic import CardPydantic
-import aiohttp
-
-session = aiohttp.ClientSession()
+from wildberries.utils import make_request
+import asyncio
 
 
 class CardView(APIView):
     @staticmethod
-    async def get_card_info_async(value):
-        params = {'nm': value}
-        async with session.get('https://card.wb.ru/cards/detail', params=params) as resp:
-            await print(resp.status)
-
-    @staticmethod
     def get_card_info(value):
-
-        page = requests.get(f'https://card.wb.ru/cards/detail?nm={value}')
+        page = asyncio.run(make_request(value))
         return CardView.get_objects(page, value)
 
     @staticmethod
@@ -30,14 +21,13 @@ class CardView(APIView):
             for row in wb[sheet].iter_rows(values_only=True):
                 values.append(row[0])
         cards_info = [CardView.get_card_info(i) for i in values]
-        asunc_card = CardView.get_card_info_async(values[0])
         return cards_info
 
     @staticmethod
     def get_objects(page, value):
         card = None
         try:
-            card = CardPydantic.parse_raw(json.dumps(page.json()['data']['products'][0]))
+            card = CardPydantic.parse_raw(json.dumps(page['data']['products'][0]))
         except IndexError as e:
             print(f'id {value} отсутствует на сайте wildberries.ru')
         if card:
@@ -47,7 +37,7 @@ class CardView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = None
-        if 'file'  in request.data and 'value' in request.data:
+        if 'file' in request.data and 'value' in request.data:
             return Response({'error': 'Одновременно отправлять поля file и value запрещено!'})
         elif 'file' in request.data:
             file = request.data['file']
