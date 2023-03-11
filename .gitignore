@@ -1,2 +1,5 @@
 .idea
 wildberries/__pycache__
+config/__pycache__
+env
+wildberries/migrations/__pycache__
