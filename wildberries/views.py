@@ -1,11 +1,13 @@
+import asyncio
 import json
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from openpyxl import load_workbook
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from wildberries.models import Product
 from wildberries.pydantic import CardPydantic
 from wildberries.utils import make_request
-import asyncio
-from wildberries.models import Product
 
 
 class CardView(APIView):
@@ -28,9 +30,10 @@ class CardView(APIView):
     def get_objects(page, value):
         card = None
         try:
-            card = CardPydantic.parse_raw(json.dumps(page['data']['products'][0]))
+            products = json.dumps(page['data']['products'][0])
+            card = CardPydantic.parse_raw(products)
             Product.objects.create(**card.dict())
-        except IndexError as e:
+        except IndexError:
             print(f'id {value} отсутствует на сайте wildberries.ru')
         if card:
             return card.dict()
@@ -40,7 +43,8 @@ class CardView(APIView):
     def post(self, request, *args, **kwargs):
         data = None
         if 'file' in request.data and 'value' in request.data:
-            return Response({'error': 'Одновременно отправлять поля file и value запрещено!'})
+            return Response({'error': 'Одновременно отправлять поля '
+                                      'file и value запрещено!'})
         elif 'file' in request.data:
             file = request.data['file']
             data = CardView.get_cards_info(file)
@@ -48,5 +52,3 @@ class CardView(APIView):
             value = request.data['value']
             data = CardView.get_card_info(value)
         return Response(data)
-
-

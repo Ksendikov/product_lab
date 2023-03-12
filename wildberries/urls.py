@@ -1,4 +1,5 @@
 from django.urls import path
+
 from wildberries.views import CardView
 
 urlpatterns = [
