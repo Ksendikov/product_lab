@@ -2,7 +2,9 @@ from django.db import models
 
 
 class Card(models.Model):
-    article = models.PositiveBigIntegerField()
+    article = models.PositiveBigIntegerField(
+        unique=True
+    )
     brand = models.CharField(
         max_length=100,
     )
@@ -15,4 +17,3 @@ class Card(models.Model):
 
     class Meta:
         ordering = ('article', )
-
