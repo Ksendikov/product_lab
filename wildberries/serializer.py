@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from wildberries.models import Card
-from wildberries.utils import get_card_info, get_cards_info
+from wildberries.utils import (get_card_info, get_cards_info,
+                               update_or_create_card)
 
 
 class CardSerializer(serializers.Serializer):
@@ -22,18 +22,7 @@ class CardSerializer(serializers.Serializer):
         file = self.validated_data.pop('file', None)
         if file:
             cards = get_cards_info(file)
-            for i in cards:
-                if 'article' in i:
-                    if not Card.objects.filter(article=i.article).exists():
-                        Card.objects.create(**i.dict())
-                    else:
-                        Card.objects.filter(article=i.article).update(brand=i.brand, title=i.title)
-            return cards
-        elif article:
-            card = get_card_info(article)
-            if 'article' in card:
-                if not Card.objects.filter(article=card.article).exists():
-                    Card.objects.create(**card.dict())
-                else:
-                    Card.objects.filter(article=card.article).update(brand=card.brand, title=card.title)
-                return card
+            for card in cards:
+                return update_or_create_card(card)
+        card = get_card_info(article)
+        return update_or_create_card(card)

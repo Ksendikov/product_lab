@@ -4,6 +4,7 @@ import json
 import aiohttp
 from openpyxl import load_workbook
 
+from wildberries.models import Card
 from wildberries.pydantic import CardPydantic
 
 URL = 'https://card.wb.ru/cards/detail'
@@ -41,3 +42,12 @@ def get_objects(page, value):
         return card
     else:
         return {'error': value}
+
+
+def update_or_create_card(card):
+    defaults = {'brand': card.brand, 'title': card.title}
+    response = Card.objects.update_or_create(
+        article=card.article,
+        defaults=defaults,
+    )
+    return response

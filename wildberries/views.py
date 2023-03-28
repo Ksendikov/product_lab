@@ -17,7 +17,6 @@ class CardView(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 except:
                     return Response({'article_error: article not found'})
             return Response(data)
-
         elif 'article' in request:
             try:
                 data = get_card_info(request['article']).dict()
